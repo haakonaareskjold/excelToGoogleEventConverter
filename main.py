@@ -100,7 +100,8 @@ for name, releaseDate, preorderDate in zip(names, releaseDates, preorderDates):
         # Create the event using the events().insert() method
         created_events = service.events().insert(calendarId=calendar_id, body=mangaRelease).execute()
         created_events = service.events().insert(calendarId=calendar_id, body=mangaPreorder).execute()
-        print('Event created: ' + mangaRelease['summary'] + 'for release date:' + releaseDate)
+        print('Event created for release: ' + mangaRelease['summary'] + ' on date' + releaseDate)
+        print('Event created for preorder: ' + mangaPreorder['summary'] + ' on date' + preorderDate)
     else:
         print('event already exists:' + mangaRelease['summary'])
 
