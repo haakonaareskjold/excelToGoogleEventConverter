@@ -6,7 +6,6 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 from tkinter import filedialog
 
 # Set up the tkinter file dialog
@@ -23,16 +22,21 @@ workbook = openpyxl.load_workbook(file_path)
 sheet = workbook['Sheet1']
 
 # Get the dates and names from the excel sheet
-dates = []
 names = []
+releaseDates = []
+preorderDates = []
+
 for row in sheet.iter_rows(min_row=2):
     name = row[0].value
-    date = row[1].value
-    dates.append(date)
+    releaseDate = row[1].value
+    preorderDate = row[2].value
     names.append(name)
+    releaseDates.append(releaseDate)
+    preorderDates.append(preorderDate)
 
 # Convert the dates to a datetime object
-dates = [datetime.strftime(date, '%Y-%m-%d') for date in dates]
+releaseDates = [datetime.strftime(releaseDate, '%Y-%m-%d') for releaseDate in releaseDates]
+preorderDates = [datetime.strftime(preorderDate, '%Y-%m-%d') for preorderDate in preorderDates]
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
@@ -63,14 +67,24 @@ service = build('calendar', 'v3', credentials=creds, static_discovery=False)
 
 # Create the events in the calendar
 calendar_id = 'primary'
-for date, name in zip(dates, names):
-    manga = {
-        'summary': name,
+for name, releaseDate, preorderDate in zip(names, releaseDates, preorderDates):
+    mangaRelease = {
+        'summary': name + ' release',
         'start': {
-            'date': date
+            'date': releaseDate
         },
         'end': {
-            'date': date
+            'date': releaseDate
+        },
+    }
+
+    mangaPreorder = {
+        'summary': name + ' preorder',
+        'start': {
+            'date': preorderDate
+        },
+        'end': {
+            'date': preorderDate
         },
     }
     
@@ -84,9 +98,10 @@ for date, name in zip(dates, names):
 
     if existingMangas is None:
         # Create the event using the events().insert() method
-        created_event = service.events().insert(calendarId=calendar_id, body=manga).execute()
-        print('Event created: ' + manga['summary'] + 'for date:' + date)
+        created_events = service.events().insert(calendarId=calendar_id, body=mangaRelease).execute()
+        created_events = service.events().insert(calendarId=calendar_id, body=mangaPreorder).execute()
+        print('Event created: ' + mangaRelease['summary'] + 'for release date:' + releaseDate)
     else:
-        print('event already exists:' + manga['summary'])
+        print('event already exists:' + mangaRelease['summary'])
 
 exit()
