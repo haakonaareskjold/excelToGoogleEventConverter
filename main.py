@@ -31,8 +31,16 @@ for row in sheet.iter_rows(min_row=2):
     releaseDate = row[1].value
     preorderDate = row[2].value
     names.append(name)
-    releaseDates.append(releaseDate)
-    preorderDates.append(preorderDate)
+
+    if releaseDate is not None:
+        releaseDates.append(releaseDate)
+    else:
+        releaseDates.append(datetime.fromtimestamp(3600))
+    
+    if preorderDate is not None:
+        preorderDates.append(preorderDate)
+    else:
+        preorderDates.append(datetime.fromtimestamp(3600))
 
 # Convert the dates to a datetime object
 releaseDates = [datetime.strftime(releaseDate, '%Y-%m-%d') for releaseDate in releaseDates]
@@ -77,7 +85,6 @@ for name, releaseDate, preorderDate in zip(names, releaseDates, preorderDates):
             'date': releaseDate
         },
     }
-
     mangaPreorder = {
         'summary': name + ' preorder',
         'start': {
@@ -87,7 +94,7 @@ for name, releaseDate, preorderDate in zip(names, releaseDates, preorderDates):
             'date': preorderDate
         },
     }
-    
+
     # get a list of events with freesearch matching name of mangas
     results = service.events().list(calendarId=calendar_id, q=name).execute()
     events = results.get('items', [])
@@ -97,11 +104,13 @@ for name, releaseDate, preorderDate in zip(names, releaseDates, preorderDates):
         existingMangas = event['summary']
 
     if existingMangas is None:
-        # Create the event using the events().insert() method
-        created_events = service.events().insert(calendarId=calendar_id, body=mangaRelease).execute()
-        created_events = service.events().insert(calendarId=calendar_id, body=mangaPreorder).execute()
-        print('Event created for release: ' + mangaRelease['summary'] + ' on date' + releaseDate)
-        print('Event created for preorder: ' + mangaPreorder['summary'] + ' on date' + preorderDate)
+        # Create the events if release or preorder is in future
+        if mangaRelease['start']['date'] >= datetime.now().strftime("%Y-%m-%d"):
+            created_events = service.events().insert(calendarId=calendar_id, body=mangaRelease).execute()
+            print('Event created for release: ' + mangaRelease['summary'] + ' on date ' + releaseDate)
+        if mangaPreorder['start']['date'] >= datetime.now().strftime("%Y-%m-%d"): 
+            created_events = service.events().insert(calendarId=calendar_id, body=mangaPreorder).execute()
+            print('Event created for preorder: ' + mangaPreorder['summary'] + ' on date ' + preorderDate)
     else:
         print('event already exists:' + mangaRelease['summary'])
 
