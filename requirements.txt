@@ -1,0 +1,4 @@
+google_api_python_client==2.70.0
+google_auth_oauthlib==0.8.0
+openpyxl==3.0.10
+protobuf==4.21.12

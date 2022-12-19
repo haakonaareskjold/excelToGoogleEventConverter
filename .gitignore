@@ -1,2 +1,5 @@
 token.json
 credentials.json
+main.spec
+dist/
+build/
